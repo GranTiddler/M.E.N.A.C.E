@@ -1,3 +1,6 @@
+import copy
+
+
 # mirrors board across the Y axis
 def mirror_y(board):
     board = [board[2], board[1], board[0], board[5], board[4], board[3], board[8], board[7], board[6]]
@@ -37,22 +40,22 @@ class Board:
         self.rotation = [0, 0, 0]
         while True:
             if self.board in self.gamestates:
-                print(f"Found rotation:{self.rotation}")
                 return self.gamestates.index(self.board)
 
             if timesrun >= 12:
-                self.rotation = [0, 0, 0]
-                self.gamestates.append(self.board)
                 print("gamestate not found in gamestates list - adding")
 
+                self.rotation = [0, 0, 0]
+
                 self.marbles.append([])
+                var = copy.copy(self.board)
+                self.gamestates.append(var)
+                del var
 
                 for i in range(9):
                     if self.gamestates[-1][i] == " ":
                         for j in range(4):
                             self.marbles[-1].append(i)
-
-                print(self.board)
                 print("gamestate added")
 
                 return self.gamestates.index(self.board)

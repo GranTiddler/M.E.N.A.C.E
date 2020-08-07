@@ -15,13 +15,13 @@ def print_board():
 
 
 def player_move():
-    player = int(input("make a move\n")) - 1
+    playermove = int(input("make a move\n")) - 1
     while True:
-        if board.board[player] == " ":
-            board.board[player] = "X"
+        if board.board[playermove] == " ":
+            board.board[playermove] = "X"
             return
         else:
-            player = int(input("make a valid move\n")) - 1
+            playermove = int(input("make a valid move\n")) - 1
 
 
 class DB:
@@ -44,21 +44,28 @@ class DB:
         with open("gamestates.json", "w") as G:
             json.dump(self.gamestates, G, indent=1)
 
-    def punish(self):
-        for i in cpu.usedMarbles:
-            self.marbles[i].remove(cpu.usedMarbles[i])
+    def punish(self, reward):
+        self.update()
+        for i in range(reward):
+            for j in cpu.usedMarbles:
+                if len(self.marbles[j]) > 0:
+                    self.marbles[j].remove(cpu.usedMarbles[j])
+                else:
+                    break
         self.dump()
 
-    def reward(self):
-        for i in cpu.usedMarbles:
-            self.marbles[i].append(cpu.usedMarbles[i])
-            self.dump()
+    def reward(self, reward):
+        self.update()
+        for i in range(reward):
+            for j in cpu.usedMarbles:
+                self.marbles[j].append(cpu.usedMarbles[j])
+        self.dump()
 
 
 class CPU:
-    def __init__(self, gamestates, marbles):
-        self.gamestates = gamestates
-        self.marbles = marbles
+    def __init__(self):
+        self.gamestates = board.gamestates
+        self.marbles = board.marbles
         self.usedMarbles = dict()
 
     def update(self):
@@ -67,38 +74,56 @@ class CPU:
         self.marbles = board.marbles
 
     def move(self):
+
         gamestate = board.get_gamestate()
         self.update()
-        choice = random.choice(self.marbles[gamestate])
-        self.usedMarbles[gamestate] = choice
+        if self.marbles[gamestate]:
+            choice = random.choice(self.marbles[gamestate])
+            self.usedMarbles[gamestate] = choice
 
-        board.board[choice] = "O"
-        board.demanipulate()
+            board.board[choice] = "O"
+            board.demanipulate()
+        else:
+            print("M.E.N.A.C.E. has resigned")
+            board.winner = "X"
+
+
+# configurations for learning
+win = 3
+draw = 1
+loss = 1
 
 
 while True:
     db = DB()
     board = BoardTools.Board(db.gamestates, db.marbles)
-    cpu = CPU(db.gamestates, db.marbles)
+    cpu = CPU()
     print("resetting")
+    player = 0
 
     while True:
-        cpu.move()
-        board.check_win()
-        print_board()
+        if player == 0:
+            cpu.move()
+            board.check_win()
+            print_board()
+            player = 1
+        elif player == 1:
+            player_move()
+            print_board()
+            board.check_win()
+            player = 0
+
         if board.winner == "O":
-            db.reward()
+            db.reward(win)
+            break
+        elif board.winner == "X":
+            db.punish(loss)
             break
         elif " " not in board.board:
+            db.reward(draw)
             db.dump()
-        player_move()
-        print_board()
-        board.check_win()
-        if board.winner == "X":
-            db.punish()
+            print("draw")
             break
-        elif " " not in board.board:
-            db.dump()
 
     print(f"{board.winner} Won")
 
