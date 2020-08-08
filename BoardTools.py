@@ -31,7 +31,6 @@ class Board:
         self.rotation = None
         self.gamestates = gamestates
         self.marbles = marbles
-        self.usedMarbles = dict()
         self.board = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
         self.winner = False
 
@@ -48,7 +47,6 @@ class Board:
             # manipulates the board up to 12 times and after the 12th time adds the gamestate to the list of gamestates
             if timesrun >= 12:
                 print("gamestate not found in gamestates list - adding")
-
                 self.rotation = [0, 0, 0]
 
                 self.marbles.append([])
@@ -91,7 +89,6 @@ class Board:
 
         if self.board in self.gamestates:
             print("Found gamestate")
-
             return self.gamestates.index(self.board)
         else:
             self.demanipulate()
@@ -103,54 +100,59 @@ class Board:
     def manipulate(self):
         if self.rotation != [0, 0, 0]:
             if self.rotation[0] != 0:
-                for i in range(4 % self.rotation[0]):
+                for i in range(self.rotation[0]):
                     self.board = rotate(self.board)
                     del i
 
             if self.rotation[1] != 0:
-                for i in range(2 % self.rotation[1] + 1):
+                for i in range(self.rotation[1]):
                     self.board = mirror_x(self.board)
                     del i
 
             if self.rotation[2] != 0:
-                for i in range(2 % self.rotation[2] + 1):
+                for i in range(self.rotation[2]):
                     self.board = mirror_y(self.board)
                     del i
 
     # manipulates code back to the player's orientation
     def demanipulate(self):
-        if self.rotation[0] != 0:
-            for i in range(4 % self.rotation[0] + 1):
-                self.board = counter_rotate(self.board)
+        if self.rotation[2] != 0:
+            for i in range(self.rotation[2]):
+                self.board = mirror_y(self.board)
                 del i
 
         if self.rotation[1] != 0:
-            for i in range(2 % self.rotation[1] + 1):
+            for i in range(self.rotation[1]):
                 self.board = mirror_x(self.board)
                 del i
 
-        if self.rotation[2] != 0:
-            for i in range(2 % self.rotation[2] + 1):
-                self.board = mirror_y(self.board)
+        if self.rotation[0] != 0:
+            for i in range(self.rotation[0]):
+                self.board = counter_rotate(self.board)
                 del i
 
     # checks if the game has been won yet
     def check_win(self):
-        if self.board[4] == self.board[1] and self.board[4] == self.board[7 and self.board[4] != " "]:
-            self. winner = self.board[4]
-        elif self.board[4] == self.board[3] and self.board[4] == self.board[5] and self.board[4] != " ":
-            self. winner = self.board[4]
-        elif self.board[4] == self.board[2] and self.board[4] == self.board[6] and self.board[4] != " ":
-            self. winner = self.board[4]
-        elif self.board[4] == self.board[0] and self.board[4] == self.board[8] and self.board[4] != " ":
-            self. winner = self.board[4]
-        elif self.board[0] == self.board[1] and self.board[0] == self.board[2] and self.board[0] != " ":
-            self. winner = self.board[0]
-        elif self.board[0] == self.board[3] and self.board[0] == self.board[6] and self.board[0] != " ":
-            self. winner = self.board[0]
-        elif self.board[8] == self.board[7] and self.board[8] == self.board[6] and self.board[8] != " ":
+        # horizontal
+        if self.board[0] == self.board[1] and self.board[1] == self.board[2] and self.board[2] != " ":
+            self. winner = self.board[2]
+        elif self.board[3] == self.board[4] and self.board[4] == self.board[5] and self.board[5] != " ":
+            self. winner = self.board[5]
+        elif self.board[6] == self.board[7] and self.board[7] == self.board[8] and self.board[8] != " ":
             self. winner = self.board[8]
-        elif self.board[8] == self.board[2] and self.board[8] == self.board[5] and self.board[8] != " ":
-            self. winner = self.board[8]
+
+        # vertical
+        elif self.board[0] == self.board[3] and self.board[3] == self.board[6] and self.board[3] != " ":
+            self. winner = self.board[3]
+        elif self.board[1] == self.board[4] and self.board[4] == self.board[7] and self.board[4] != " ":
+            self. winner = self.board[4]
+        elif self.board[2] == self.board[5] and self.board[5] == self.board[8] and self.board[5] != " ":
+            self. winner = self.board[0]
+
+        # diagonal
+        elif self.board[0] == self.board[4] and self.board[4] == self.board[8] and self.board[4] != " ":
+            self. winner = self.board[4]
+        elif self.board[2] == self.board[4] and self.board[4] == self.board[6] and self.board[8] != " ":
+            self. winner = self.board[4]
         else:
             self.winner = False
