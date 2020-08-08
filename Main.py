@@ -3,6 +3,7 @@ import json
 import random
 
 
+# sets up configurations
 with open("config.json", 'r') as config:
     config = json.load(config)
 
@@ -13,6 +14,9 @@ with open("config.json", 'r') as config:
 
     # config for player 1
     player1 = config["player1"]
+
+    # deletes config
+    del config
 
 
 # prints game board to the terminal
