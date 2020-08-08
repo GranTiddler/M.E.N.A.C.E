@@ -3,6 +3,7 @@ import json
 import random
 
 
+# prints game board to the terminal
 def print_board():
     print(f"""
           {board.board[0]}  |  {board.board[1]}  |  {board.board[2]}    
@@ -14,6 +15,7 @@ def print_board():
         """)
 
 
+# gets players input and updates the board
 def player_move():
     playermove = int(input("make a move\n")) - 1
     while True:
@@ -24,7 +26,9 @@ def player_move():
             playermove = int(input("make a valid move\n")) - 1
 
 
+# handles json file interactions
 class DB:
+    # gets data from json files
     def __init__(self):
         with open("gamestates.json", 'r') as G:
             self.gamestates = json.load(G)
@@ -32,10 +36,12 @@ class DB:
         with open("marbles.json", 'r') as M:
             self.marbles = json.load(M)
 
+    # updates data to be consistant with BoardTools.py
     def update(self):
         self.gamestates = board.gamestates
         self.marbles = board.marbles
 
+    # dumps data to json files for future use
     def dump(self):
         self.update()
         with open("marbles.json", "w") as M:
@@ -44,6 +50,7 @@ class DB:
         with open("gamestates.json", "w") as G:
             json.dump(self.gamestates, G, indent=1)
 
+    # removes choices from marbles and dumps to json files
     def punish(self, reward):
         self.update()
         for i in range(reward):
@@ -54,6 +61,7 @@ class DB:
                     break
         self.dump()
 
+    # adds marbles and dumps to json file
     def reward(self, reward):
         self.update()
         for i in range(reward):
@@ -62,21 +70,25 @@ class DB:
         self.dump()
 
 
+# class for cpu object
 class CPU:
     def __init__(self):
         self.gamestates = board.gamestates
         self.marbles = board.marbles
         self.usedMarbles = dict()
 
+    # updates information about marbles and gamestates
     def update(self):
         db.update()
-        self.gamestates = board.gamestates
-        self.marbles = board.marbles
+        self.gamestates = db.gamestates
+        self.marbles = db.marbles
 
+    # chooses a random move based off marbles list
     def move(self):
-
         gamestate = board.get_gamestate()
         self.update()
+
+        # verifies that it has choices or resigns
         if self.marbles[gamestate]:
             choice = random.choice(self.marbles[gamestate])
             self.usedMarbles[gamestate] = choice
@@ -88,20 +100,23 @@ class CPU:
             board.winner = "X"
 
 
-# configurations for learning
+# configurations for learning rates
 win = 3
 draw = 1
 loss = 1
 
-
+# main loop
 while True:
+    # (re)initializes classes for use in main loop
     db = DB()
     board = BoardTools.Board(db.gamestates, db.marbles)
     cpu = CPU()
     print("resetting")
     player = 0
 
+    # game loop
     while True:
+        # switches between player's and cpu's turn
         if player == 0:
             cpu.move()
             board.check_win()
@@ -113,6 +128,7 @@ while True:
             board.check_win()
             player = 0
 
+        # executes endgame functions based on a winner or a draw
         if board.winner == "O":
             db.reward(win)
             break
@@ -125,7 +141,9 @@ while True:
             print("draw")
             break
 
+    # prints who won
     print(f"{board.winner} Won")
 
+    # deletes board and cpu objects to clear data
     del board
     del cpu

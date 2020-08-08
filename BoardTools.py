@@ -25,6 +25,7 @@ def counter_rotate(board):
     return board
 
 
+# board class for logic and data storage
 class Board:
     def __init__(self, gamestates, marbles):
         self.rotation = None
@@ -34,14 +35,17 @@ class Board:
         self.board = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
         self.winner = False
 
+    # finds the rotation of the board compared to the list and returns the index of the board
     def find_rotation(self):
         manipulationstate = 0
         timesrun = 0
         self.rotation = [0, 0, 0]
         while True:
+            # returns index of board if it is in the list of gamestates
             if self.board in self.gamestates:
                 return self.gamestates.index(self.board)
 
+            # manipulates the board up to 12 times and after the 12th time adds the gamestate to the list of gamestates
             if timesrun >= 12:
                 print("gamestate not found in gamestates list - adding")
 
@@ -78,6 +82,7 @@ class Board:
                 manipulationstate = 0
                 timesrun += 1
 
+    # finds the inndex of the current gamestate and returns it
     def get_gamestate(self):
         if not self.rotation:
             return self.find_rotation()
@@ -94,6 +99,7 @@ class Board:
             self.rotation = [0, 0, 0]
             return self.find_rotation()
 
+    # manipulates the code into the cpu's/gamestate list's orientation
     def manipulate(self):
         if self.rotation != [0, 0, 0]:
             if self.rotation[0] != 0:
@@ -102,15 +108,16 @@ class Board:
                     del i
 
             if self.rotation[1] != 0:
-                for i in range(4 % self.rotation[1] + 1):
+                for i in range(2 % self.rotation[1] + 1):
                     self.board = mirror_x(self.board)
                     del i
 
             if self.rotation[2] != 0:
-                for i in range(4 % self.rotation[2] + 1):
+                for i in range(2 % self.rotation[2] + 1):
                     self.board = mirror_y(self.board)
                     del i
 
+    # manipulates code back to the player's orientation
     def demanipulate(self):
         if self.rotation[0] != 0:
             for i in range(4 % self.rotation[0] + 1):
@@ -118,15 +125,16 @@ class Board:
                 del i
 
         if self.rotation[1] != 0:
-            for i in range(4 % self.rotation[1] + 1):
+            for i in range(2 % self.rotation[1] + 1):
                 self.board = mirror_x(self.board)
                 del i
 
         if self.rotation[2] != 0:
-            for i in range(4 % self.rotation[2] + 1):
+            for i in range(2 % self.rotation[2] + 1):
                 self.board = mirror_y(self.board)
                 del i
 
+    # checks if the game has been won yet
     def check_win(self):
         if self.board[4] == self.board[1] and self.board[4] == self.board[7 and self.board[4] != " "]:
             self. winner = self.board[4]
