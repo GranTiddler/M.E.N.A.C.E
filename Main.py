@@ -1,7 +1,6 @@
 import BoardTools
 import json
 import random
-import time
 
 
 # sets up configurations
@@ -13,9 +12,7 @@ with open("config.json", 'r') as config:
     draw = config["draw"]
     loss = config["loss"]
 
-    # config for player 1
     player1 = config["player1"]
-
     # deletes config
     del config
 
@@ -30,21 +27,6 @@ def print_board():
       {board.board[6]}  |  {board.board[7]}  |  {board.board[8]}  
          |     |
     """)
-
-
-# gets players input and updates the board
-def player_move():
-    playermove = input("make a move\n")
-    valid = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-    while True:
-        if playermove in valid:
-            playermove = int(playermove) - 1
-        elif playermove in range(9):
-            if board.board[playermove] == " ":
-                board.board[playermove] = "X"
-                return
-        else:
-            playermove = int(input("make a valid move\n")) - 1
 
 
 # handles json file interactions
@@ -71,35 +53,24 @@ class DB:
         with open("gamestates.json", "w") as G:
             json.dump(self.gamestates, G, indent=1)
 
-    # removes choices from marbles and dumps to json files
-    def punish(self, reward):
-        self.update()
-        for i in range(reward):
-            for j in cpu.usedMarbles:
-                if len(self.marbles[j]) > 0:
-                    self.marbles[j].remove(cpu.usedMarbles[j])
-                else:
-                    break
-        self.dump()
 
-    # adds marbles and dumps to json file
-    def reward(self, reward):
-        self.update()
-        for i in range(reward):
-            for j in cpu.usedMarbles:
-                self.marbles[j].append(cpu.usedMarbles[j])
-        self.dump()
+# initializes agent class
+class Agent:
+    def __init__(self, letter, name):
+        self.letter = letter
+        self.name = name
+
+    def update_board(self, index):
+        board.board[index] = self.letter
 
     def endgame(self, reward):
-        if reward > 0:
-            self.reward(reward)
-        elif reward < 0:
-            self.punish(reward)
+        pass
 
 
 # class for cpu object
-class CPU:
-    def __init__(self):
+class CPU(Agent):
+    def __init__(self, name, letter="O"):
+        super().__init__(letter, name)
         self.gamestates = board.gamestates
         self.marbles = board.marbles
         self.usedMarbles = dict()
@@ -120,18 +91,56 @@ class CPU:
             choice = random.choice(self.marbles[gamestate])
             self.usedMarbles[gamestate] = choice
 
-            board.board[choice] = "O"
+            self.update_board(choice)
             board.demanipulate()
         else:
             print("M.E.N.A.C.E. has resigned")
             board.winner = "X"
+
+    # handles endgame
+    def endgame(self, reward):
+        db.update()
+        if reward > 0:
+            for i in range(reward):
+                for j in self.usedMarbles:
+                    self.marbles[j].append(self.usedMarbles[j])
+        elif reward < 0:
+            for i in range(reward):
+                for j in self.usedMarbles:
+                    if len(self.marbles[j]) > 0:
+                        self.marbles[j].remove(self.usedMarbles[j])
+                    else:
+                        break
+        db.dump()
+
+
+# class for player object
+class Player(Agent):
+    def __init__(self, name, letter="X"):
+        super().__init__(letter, name)
+
+    # gets players input and updates the board
+    def move(self):
+        playermove = input("make a move\n")
+        valid = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+        while True:
+            if playermove in valid:
+                playermove = int(playermove) - 1
+            elif playermove in range(9):
+                if board.board[playermove] == " ":
+                    self.update_board(playermove)
+                    return
+
+                else:
+                    playermove = int(input("make a valid move\n")) - 1
+                    continue
 
 
 # initializes db
 db = DB()
 
 
-# print instructions
+# print instructions and waits 2 seconds
 print("""
 board positions:
       0  |  1  |  2    
@@ -141,13 +150,14 @@ board positions:
       6  |  7  |  8  
          |     |
 """)
-time.sleep(3)
 
+wins = [0, 0]
 # main loop
 while True:
     # (re)initializes classes for use in main loop
     board = BoardTools.Board(db.gamestates, db.marbles)
-    cpu = CPU()
+    p1 = CPU("CPU", "O")
+    p2 = Player("Player", "X")
 
     # configuration for who goes first ( 0 = cpu 1 = player
     player = player1
@@ -155,31 +165,34 @@ while True:
     # game loop
     while True:
         # switches between player's and cpu's turn
+        print_board()
         if player == 0:
-            cpu.move()
+            p1.move()
             player = 1
         elif player == 1:
-            print_board()
-            player_move()
+            p2.move()
             player = 0
 
         board.check_win()
 
         # executes endgame functions based on a winner or a draw
-        if board.winner == "O":
-            print("you lost")
-            db.endgame(win)
+        if board.winner == p1.letter:
+            print(f"{p1.name} won")
+            p1.endgame(win)
+            wins[0] += 1
             break
-        elif board.winner == "X":
-            db.endgame(loss)
-            print("you won")
+        elif board.winner == p2.letter:
+            print(f"{p2.name} won")
+            p2.endgame(loss)
+            wins[1] += 1
             break
         elif " " not in board.board:
-            db.endgame(draw)
+            p1.endgame(draw)
+            p2.endgame(draw)
             db.dump()
-            print("draw")
             break
 
     # deletes board and cpu objects to clear data
     del board
-    del cpu
+    del p1
+    del p2
