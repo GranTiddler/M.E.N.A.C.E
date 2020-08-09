@@ -88,11 +88,9 @@ class Board:
         self.manipulate()
 
         if self.board in self.gamestates:
-            print("Found gamestate")
             return self.gamestates.index(self.board)
         else:
             self.demanipulate()
-            print("did not find gamestate - rotation value incorrect")
             self.rotation = [0, 0, 0]
             return self.find_rotation()
 
@@ -152,7 +150,7 @@ class Board:
         # diagonal
         elif self.board[0] == self.board[4] and self.board[4] == self.board[8] and self.board[4] != " ":
             self. winner = self.board[4]
-        elif self.board[2] == self.board[4] and self.board[4] == self.board[6] and self.board[8] != " ":
+        elif self.board[2] == self.board[4] and self.board[4] == self.board[6] and self.board[4] != " ":
             self. winner = self.board[4]
         else:
             self.winner = False

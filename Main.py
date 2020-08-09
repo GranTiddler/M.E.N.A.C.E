@@ -1,6 +1,7 @@
 import BoardTools
 import json
 import random
+import time
 
 
 # sets up configurations
@@ -22,13 +23,13 @@ with open("config.json", 'r') as config:
 # prints game board to the terminal
 def print_board():
     print(f"""
-          {board.board[0]}  |  {board.board[1]}  |  {board.board[2]}    
-        _____|_____|____
-          {board.board[3]}  |  {board.board[4]}  |  {board.board[5]}   
-        _____|_____|____
-          {board.board[6]}  |  {board.board[7]}  |  {board.board[8]}  
-             |     |
-        """)
+      {board.board[0]}  |  {board.board[1]}  |  {board.board[2]}    
+    _____|_____|____
+      {board.board[3]}  |  {board.board[4]}  |  {board.board[5]}   
+    _____|_____|____
+      {board.board[6]}  |  {board.board[7]}  |  {board.board[8]}  
+         |     |
+    """)
 
 
 # gets players input and updates the board
@@ -126,13 +127,27 @@ class CPU:
             board.winner = "X"
 
 
+# initializes db
+db = DB()
+
+
+# print instructions
+print("""
+board positions:
+      0  |  1  |  2    
+    _____|_____|____
+      3  |  4  |  5   
+    _____|_____|____
+      6  |  7  |  8  
+         |     |
+""")
+time.sleep(3)
+
 # main loop
 while True:
     # (re)initializes classes for use in main loop
-    db = DB()
     board = BoardTools.Board(db.gamestates, db.marbles)
     cpu = CPU()
-    print("resetting")
 
     # configuration for who goes first ( 0 = cpu 1 = player
     player = player1
