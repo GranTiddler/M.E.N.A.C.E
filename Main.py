@@ -12,7 +12,9 @@ with open("config.json", 'r') as config:
     draw = config["draw"]
     loss = config["loss"]
 
+    # sets up player 1
     player1 = config["player1"]
+
     # deletes config
     del config
 
@@ -83,8 +85,10 @@ class CPU(Agent):
 
     # chooses a random move based off marbles list
     def move(self):
+        self.letter_invert()
         gamestate = board.get_gamestate()
         self.update()
+        self.letter_invert()
 
         # verifies that it has choices or resigns
         if self.marbles[gamestate]:
@@ -112,6 +116,18 @@ class CPU(Agent):
                     else:
                         break
         db.dump()
+
+    # inverts letters so cpu can use any letter without error
+    def letter_invert(self):
+        if self.letter == "X":
+            for i in range(9):
+                if board.board[i] == "X":
+                    board.board[i] = "O"
+                elif board.board[i] == "O":
+                    board.board[i] = "X"
+
+        else:
+            return
 
 
 # class for player object
@@ -151,7 +167,7 @@ board positions:
          |     |
 """)
 
-wins = [0, 0]
+
 # main loop
 while True:
     # (re)initializes classes for use in main loop
@@ -179,12 +195,10 @@ while True:
         if board.winner == p1.letter:
             print(f"{p1.name} won")
             p1.endgame(win)
-            wins[0] += 1
             break
         elif board.winner == p2.letter:
             print(f"{p2.name} won")
             p2.endgame(loss)
-            wins[1] += 1
             break
         elif " " not in board.board:
             p1.endgame(draw)

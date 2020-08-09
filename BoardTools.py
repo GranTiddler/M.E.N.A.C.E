@@ -46,7 +46,6 @@ class Board:
 
             # manipulates the board up to 12 times and after the 12th time adds the gamestate to the list of gamestates
             if timesrun >= 12:
-                print("gamestate not found in gamestates list - adding")
                 self.rotation = [0, 0, 0]
 
                 self.marbles.append([])
@@ -58,7 +57,6 @@ class Board:
                     if self.gamestates[-1][i] == " ":
                         for j in range(4):
                             self.marbles[-1].append(i)
-                print("gamestate added")
 
                 return self.gamestates.index(self.board)
 
