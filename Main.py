@@ -91,7 +91,7 @@ class CPU(Agent):
         self.letter_invert()
 
         # verifies that it has choices or resigns
-        if self.marbles[gamestate]:
+        if len(self.marbles[gamestate]) != 0:
             choice = random.choice(self.marbles[gamestate])
             self.usedMarbles[gamestate] = choice
 
@@ -181,7 +181,6 @@ while True:
     # game loop
     while True:
         # switches between player's and cpu's turn
-        print_board()
         if player == 0:
             p1.move()
             player = 1
@@ -189,6 +188,7 @@ while True:
             p2.move()
             player = 0
 
+        print_board()
         board.check_win()
 
         # executes endgame functions based on a winner or a draw
