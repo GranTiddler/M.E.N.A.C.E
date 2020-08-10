@@ -3,22 +3,6 @@ import json
 import random
 
 
-# sets up configurations
-with open("config.json", 'r') as config:
-    config = json.load(config)
-
-    # configurations for learning rates
-    win = config["win"]
-    draw = config["draw"]
-    loss = config["loss"]
-
-    # sets up player 1
-    player1 = config["player1"]
-
-    # deletes config
-    del config
-
-
 # prints game board to the terminal
 def print_board():
     print(f"""
@@ -40,6 +24,21 @@ class DB:
 
         with open("marbles.json", 'r') as M:
             self.marbles = json.load(M)
+
+        with open("config.json", 'r') as config:
+            config = json.load(config)
+
+            # configurations for learning rates
+            self.win = config["win"]
+            self.draw = config["draw"]
+            self.loss = config["loss"]
+
+            # sets up player 1
+            self.player1 = config["player1"]
+            self.player2 = config["player2"]
+
+            # deletes config
+            del config
 
     # updates data to be consistant with BoardTools.py
     def update(self):
@@ -71,8 +70,8 @@ class Agent:
 
 # class for cpu object
 class CPU(Agent):
-    def __init__(self, name, letter="O"):
-        super().__init__(letter, name)
+    def __init__(self, letter="O"):
+        super().__init__(letter, "CPU")
         self.gamestates = board.gamestates
         self.marbles = board.marbles
         self.usedMarbles = dict()
@@ -132,8 +131,8 @@ class CPU(Agent):
 
 # class for player object
 class Player(Agent):
-    def __init__(self, name, letter="X"):
-        super().__init__(letter, name)
+    def __init__(self, letter="X", ):
+        super().__init__(letter, "Player")
 
     # gets players input and updates the board
     def move(self):
@@ -150,6 +149,19 @@ class Player(Agent):
                 else:
                     playermove = int(input("make a valid move\n")) - 1
                     continue
+
+
+class Random(Agent):
+    def __init__(self, letter):
+        super().__init__(letter, "Random")
+
+    # picks a random move and checks if it's valid
+    def move(self):
+        while True:
+            choice = random.randint(0, 8)
+            if board.board[choice] == " ":
+                self.update_board(choice)
+                return
 
 
 # initializes db
@@ -172,11 +184,27 @@ board positions:
 while True:
     # (re)initializes classes for use in main loop
     board = BoardTools.Board(db.gamestates, db.marbles)
-    p1 = CPU("CPU", "O")
-    p2 = Player("Player", "X")
+    player = 0
 
-    # configuration for who goes first ( 0 = cpu 1 = player
-    player = player1
+    # initializes p1 based on config
+    if db.player1 == 0:
+        p1 = CPU("O")
+    elif db.player1 == 1:
+        p1 = Player("O")
+    elif db.player1 == 2:
+        p1 = Random("O")
+    else:
+        break
+
+    # initializes p2 based on config
+    if db.player2 == 0:
+        p2 = CPU("X")
+    elif db.player2 == 1:
+        p2 = Player("X")
+    elif db.player2 == 2:
+        p2 = Random("X")
+    else:
+        break
 
     # game loop
     while True:
@@ -194,15 +222,15 @@ while True:
         # executes endgame functions based on a winner or a draw
         if board.winner == p1.letter:
             print(f"{p1.name} won")
-            p1.endgame(win)
+            p1.endgame(db.win)
             break
         elif board.winner == p2.letter:
             print(f"{p2.name} won")
-            p2.endgame(loss)
+            p2.endgame(db.loss)
             break
         elif " " not in board.board:
-            p1.endgame(draw)
-            p2.endgame(draw)
+            p1.endgame(db.draw)
+            p2.endgame(db.draw)
             db.dump()
             break
 
@@ -210,3 +238,5 @@ while True:
     del board
     del p1
     del p2
+
+print("somebody beansed the config")
